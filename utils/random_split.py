@@ -19,6 +19,9 @@ class CallableDataset(TensorDataset):
         
         return tuple(batch)
     
+    def all(self):
+        return tuple(self.tensors)
+    
 
 
 class RandomSplit():
