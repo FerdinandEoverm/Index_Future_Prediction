@@ -77,36 +77,45 @@ class PredictionRecorder:
             tp = cm[i, i]
             predicted_count = cm[:, i].sum()
             true_count = cm[i, :].sum()
+
+            predicted_ratio = predicted_count / cm.sum()
+            true_ratio = true_count / cm.sum()
+
             precision = tp / predicted_count if predicted_count > 0 else 0
             recall = tp / true_count if true_count > 0 else 0
+
             severe_error = 0
             if i == 0:
                 severe_error = cm[2, 0] / predicted_count if predicted_count > 0 else 0
             elif i == 2:
                 severe_error = cm[0, 2] / predicted_count if predicted_count > 0 else 0
+            
             results.append({
-                '预测为该分类的个数': predicted_count,
-                'Precision (精确率)': precision,
-                '真实为该分类的个数': true_count,
-                'Accuracy (召回率)': recall,
-                'Severe (严重错误率)': severe_error
+                'Prediction Ratio': predicted_ratio,
+                'Precision: Right/Pred': precision,
+                'Severe: Wrong/Pred': severe_error,
+                'Real Ratio': true_ratio,
+                'Accuracy: Right/Real': recall,
             })
 
         total_samples = cm.sum()
-        total_correct = np.trace(cm)
-        total_severe_errors = cm[2, 0] + cm[0, 2]
-        overall_accuracy = total_correct / total_samples if total_samples > 0 else 0
-        overall_severe_rate = total_severe_errors / total_samples if total_samples > 0 else 0
+
+        radical_prediction = cm[:, 0].sum() + cm[:,2].sum()
+        radical_real = cm[0, :].sum() + cm[2,:].sum()
+
+        radical_correct = cm[0, 0] + cm[2, 2]
+        radical_wrong = cm[2, 0] + cm[0, 2]
+
+
         results.append({
-            '预测为该分类的个数': total_samples,
-            'Precision (精确率)': overall_accuracy,
-            '真实为该分类的个数': total_samples,
-            'Accuracy (召回率)': overall_accuracy,
-            'Severe (严重错误率)': overall_severe_rate
+            'Prediction Ratio': radical_prediction / total_samples if total_samples > 0 else 0.0,
+            'Precision: Right/Pred': radical_correct / radical_prediction if radical_prediction > 0 else 0.0,
+            'Severe: Wrong/Pred': radical_wrong / radical_prediction if radical_prediction > 0 else 0.0,
+            
+            'Real Ratio': radical_real / total_samples if total_samples > 0 else 0.0,
+            'Accuracy: Right/Real': radical_correct / radical_real if radical_real > 0 else 0.0,
         })
-        summary_df = pd.DataFrame(results, index=['分类 0 (负)', '分类 1 (放弃)', '分类 2 (正)', '总计'])
-        # print(f"--- 基于阈值 {threshold} 的分类性能摘要 ---")
-        # print(summary_df.to_string(float_format="%.4f"))
+        summary_df = pd.DataFrame(results, index=['分类 0 (悲观)', '分类 1 (放弃)', '分类 2 (乐观)', '分类 0 + 分类 2'])
         return summary_df
 
     def distribution(self) -> tuple[float, float, float]:

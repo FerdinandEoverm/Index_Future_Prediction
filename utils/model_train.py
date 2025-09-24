@@ -37,7 +37,7 @@ class ModelTrain():
             self.model.train()
             for i in tqdm.tqdm(range(round)):
 
-                batch_data = current_set(batch_size = 10)
+                batch_data = current_set(batch_size = 100)
                 batch_x, batch_y = batch_data[:-1], batch_data[-1]
 
                 self.optimizer.zero_grad()
@@ -53,7 +53,7 @@ class ModelTrain():
             with torch.no_grad():
                 for i in tqdm.tqdm(range(round)):
 
-                    batch_data = current_set(batch_size = 10)
+                    batch_data = current_set(batch_size = 100)
                     batch_x, batch_y = batch_data[:-1], batch_data[-1]
 
                     pred = self.model(*batch_x)
@@ -61,10 +61,12 @@ class ModelTrain():
                     losses.append(loss.item()) 
                     self.recorder.add(pred[:,1:], batch_y[:,:1])
 
-        if print_summary:
-            return self.recorder.summary(threshold = self.threshold)
+        summarys = self.recorder.summary(threshold = self.threshold)
 
-        return np.mean(losses), self.recorder.distribution(), self.recorder.average_score()
+        if print_summary:
+            return summarys.style.format('{:.2%}')
+        else:
+            return np.mean(losses), tuple(summarys.iloc[:3,0]), tuple(summarys.iloc[3,1:3])
 
 
     def epoch_train(self, epochs, round, early_stop = 10):
@@ -83,6 +85,7 @@ class ModelTrain():
             self.graph.add(self.current_epoch, validation_loss, subplot_idx = 3)
             self.graph.add(self.current_epoch, validation_summary, subplot_idx = 4)
             self.graph.add(self.current_epoch, validation_score, subplot_idx = 5)
+            self.graph.draw()
 
         for epoch in range(epochs):
 
@@ -101,7 +104,8 @@ class ModelTrain():
             self.graph.add(self.current_epoch, validation_loss, subplot_idx = 3)
             self.graph.add(self.current_epoch, validation_summary, subplot_idx = 4)
             self.graph.add(self.current_epoch, validation_score, subplot_idx = 5)
-
+            self.graph.draw()
+            
             # Early Stop
             if epoch > early_stop:
                 if validation_loss>np.mean(losses[-early_stop:]):

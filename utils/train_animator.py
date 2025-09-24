@@ -7,11 +7,36 @@ class TrainAnimator:
     在动画中绘制数据，用于在模型训练中动态监控损失、预测概率、logits的变化。
     """
 
-    def __init__(self, figsize=(12, 6)):
+    def __init__(self, figsize=(12, 6), legend_labels=None):
         self.num_subplots = 6
+        
+        # 默认图例标签
+        default_legends = [
+            ['loss'],  # train loss
+            ['Down', 'Abstain', 'Up'],
+            ['Precision', 'Severe'],
+            ['loss'],  # test loss
+            ['Down', 'Abstain', 'Up'],
+            ['Precision', 'Severe']
+        ]
+        
+        # 使用提供的图例标签或默认值
+        self.legend_labels = legend_labels if legend_labels is not None else default_legends
+        
+        # 确保图例标签数量与子图数量一致
+        if len(self.legend_labels) != self.num_subplots:
+            raise ValueError(f"legend_labels must have {self.num_subplots} elements")
+            
+        # 不立即显示图形
         self.fig, self.axes = plt.subplots(2, 3, figsize=figsize)
+        plt.close(self.fig)  # 关闭图形，避免立即显示
         self.axes = self.axes.flatten()
-        titles = ['train loss', 'train classes prob', 'train classes logits', 'test loss', 'test classes prob', 'test classes logits']
+        
+        # 初始化数据存储
+        self.reset()
+        
+        # 设置标题和网格（但不绘制）
+        titles = ['train loss', 'train classes ratio', 'Precision and Severe', 'test loss', 'test classes ratio', 'Precision and Severe']
         for i, ax in enumerate(self.axes):
             ax.set_title(titles[i])
             ax.grid()
@@ -48,20 +73,49 @@ class TrainAnimator:
                 target_plot['X'][i].append(a)
                 target_plot['Y'][i].append(b)
 
-        self.draw()
 
     def draw(self):
         """绘制子图"""
         display.clear_output(wait=True)
+        
+        # 重新创建图形（避免关闭后无法绘制）
+        if not plt.fignum_exists(self.fig.number):
+            self.fig, self.axes = plt.subplots(2, 3, figsize=self.fig.get_size_inches())
+            self.axes = self.axes.flatten()
+            titles = ['train loss', 'train classes prob', 'Precision and Severe', 'test loss', 'test classes prob', 'Precision and Severe']
+            for i, ax in enumerate(self.axes):
+                ax.set_title(titles[i])
+                ax.grid()
+            self.fig.tight_layout()
+        
         for i, ax in enumerate(self.axes):
-            ax.cla()
+            ax.clear()  # 使用clear而不是cla，保留标题等设置
             plot_data = self.data[i]
+            
+            # 重新设置标题和网格（因为clear会清除它们）
+            titles = ['train loss', 'train classes prob', 'Precision and Severe', 'test loss', 'test classes prob', 'Precision and Severe']
+            ax.set_title(titles[i])
+            ax.grid()
+            
             if plot_data['X']:
                 fmts = ('-', 'm--', 'g-.', 'r:')
+                lines = []  # 存储线条对象用于图例
+                labels = []  # 存储标签
+                
                 for j in range(len(plot_data['X'])):
-                    ax.plot(plot_data['X'][j], plot_data['Y'][j], fmts[j % len(fmts)])
-            ax.grid()
-            # ax.legend()
+                    if plot_data['X'][j] and plot_data['Y'][j]:  # 确保有数据
+                        # 只绘制实际有数据的线条
+                        line, = ax.plot(plot_data['X'][j], plot_data['Y'][j], fmts[j % len(fmts)])
+                        lines.append(line)
+                        
+                        # 使用预设的图例标签，但不超过实际数据线条数量
+                        if j < len(self.legend_labels[i]):
+                            labels.append(self.legend_labels[i][j])
+                
+                # 如果有线条，添加图例
+                if lines and labels:
+                    ax.legend(lines, labels, loc='best')
+        
         self.fig.tight_layout()
         display.display(self.fig)
 
@@ -69,3 +123,9 @@ class TrainAnimator:
         """清空数据"""
         self.data = [{'X': [], 'Y': []} for _ in range(self.num_subplots)]
         print("Animator data has been reset.")
+        
+    def set_legend_labels(self, legend_labels):
+        """设置图例标签"""
+        if len(legend_labels) != self.num_subplots:
+            raise ValueError(f"legend_labels must have {self.num_subplots} elements")
+        self.legend_labels = legend_labels
