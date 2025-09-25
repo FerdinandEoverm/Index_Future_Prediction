@@ -20,4 +20,5 @@ class HybridLoss(nn.Module):
     def forward(self, pred: torch.Tensor, real: torch.Tensor):
         huber_loss = self.huber_loss(pred[:,:1], real[:,:1])
         kl_loss = self.kl_loss(pred[:,1:], real[:,1:])
+        # print('huber_loss',huber_loss, 'kl_loss', kl_loss)
         return self.alpha * huber_loss + (1-self.alpha)*kl_loss
