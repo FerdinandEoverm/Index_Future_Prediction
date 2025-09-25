@@ -116,3 +116,5 @@ class ModelTrain():
         self.recorder.summary()
         self.round(round = round, is_train=False, use_set='test')
         self.recorder.summary()
+
+        return validation_score
