@@ -6,8 +6,9 @@ class ModelTrain():
     封装模型训练过程
     data_set 需要实现__call__返回batch_size的数据
     """
-    def __init__(self, model, train_set, validation_set, test_set, loss_fn, optimizer, scheduler, recorder, graph, threshold):
+    def __init__(self, model, batch_size, train_set, validation_set, test_set, loss_fn, optimizer, scheduler, recorder, graph, threshold):
         self.model = model
+        self.batch_size = batch_size
         self.train_set = train_set
         self.validation_set = validation_set
         self.test_set = test_set
@@ -37,7 +38,7 @@ class ModelTrain():
             self.model.train()
             for i in tqdm.tqdm(range(round)):
 
-                batch_data = current_set(batch_size = 100)
+                batch_data = current_set(batch_size = self.batch_size)
                 batch_x, batch_y = batch_data[:-1], batch_data[-1]
 
                 self.optimizer.zero_grad()
@@ -53,7 +54,7 @@ class ModelTrain():
             with torch.no_grad():
                 for i in tqdm.tqdm(range(round)):
 
-                    batch_data = current_set(batch_size = 100)
+                    batch_data = current_set(batch_size = self.batch_size)
                     batch_x, batch_y = batch_data[:-1], batch_data[-1]
 
                     pred = self.model(*batch_x)

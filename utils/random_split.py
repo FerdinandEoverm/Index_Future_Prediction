@@ -19,6 +19,32 @@ class CallableDataset(TensorDataset):
         
         return tuple(batch)
     
+    def __add__(self, dataset_b):
+        """
+        合并两个CallableDataset，返回新的CallableDataset
+        """
+        # 检查类型
+        if not isinstance(dataset_b, CallableDataset):
+            raise TypeError("只能合并CallableDataset类型")
+        
+        # 检查tensors数量是否一致
+        if len(self.tensors) != len(dataset_b.tensors):
+            raise ValueError("两个数据集的tensors数量必须一致")
+        
+        # 检查每个tensor的维度（除了batch维度）是否匹配
+        for i, (tensor_a, tensor_b) in enumerate(zip(self.tensors, dataset_b.tensors)):
+            if tensor_a.shape[1:] != tensor_b.shape[1:]:
+                raise ValueError(f"第{i}个tensor的维度不匹配: {tensor_a.shape[1:]} vs {tensor_b.shape[1:]}")
+        
+        # 合并所有tensors
+        merged_tensors = []
+        for tensor_a, tensor_b in zip(self.tensors, dataset_b.tensors):
+            merged_tensor = torch.cat([tensor_a, tensor_b], dim=0)
+            merged_tensors.append(merged_tensor)
+        
+        # 创建新的CallableDataset
+        return CallableDataset(*merged_tensors)
+    
     def all(self):
         return tuple(self.tensors)
     
