@@ -6,7 +6,7 @@ class ModelTrain():
     封装模型训练过程
     data_set 需要实现__call__返回batch_size的数据
     """
-    def __init__(self, model, batch_size, train_set, validation_set, test_set, loss_fn, optimizer, scheduler, recorder, graph, threshold):
+    def __init__(self, model, batch_size, train_set, validation_set, test_set, loss_fn, optimizer, scheduler, recorder, graph):
         self.model = model
         self.batch_size = batch_size
         self.train_set = train_set
@@ -18,7 +18,6 @@ class ModelTrain():
         self.recorder = recorder
         self.graph = graph
         self.current_epoch = 0
-        self.threshold = threshold
 
     def round(self, round, is_train = True, use_set = 'train', print_summary = False):
         
@@ -45,7 +44,7 @@ class ModelTrain():
                 pred = self.model(*batch_x)
                 loss = self.loss_fn(pred, batch_y)
                 losses.append(loss.item()) 
-                self.recorder.add(pred[:,1:], batch_y[:,:1])
+                self.recorder.add(pred, batch_y)
                 loss.backward()
                 self.optimizer.step()
         
@@ -60,9 +59,9 @@ class ModelTrain():
                     pred = self.model(*batch_x)
                     loss = self.loss_fn(pred, batch_y)
                     losses.append(loss.item()) 
-                    self.recorder.add(pred[:,1:], batch_y[:,:1])
+                    self.recorder.add(pred, batch_y)
 
-        summarys = self.recorder.summary(threshold = self.threshold)
+        summarys = self.recorder.summary()
 
         if print_summary:
             return summarys.style.format('{:.2%}')
@@ -118,4 +117,4 @@ class ModelTrain():
         self.round(round = round, is_train=False, use_set='test')
         self.recorder.summary()
 
-        return validation_score
+        return self.recorder.summary().iloc[3,0], self.recorder.summary().iloc[3,1] - self.recorder.summary().iloc[3,2]
