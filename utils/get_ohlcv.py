@@ -31,6 +31,8 @@ class GetOHLCV():
         
         data['label_std'] = data['amount'].rolling(window = pred_len).mean().shift(-pred_len)/ data['ma_amount'] * data['ma_return_std'] # 根据当前成交量和历史成交量，估计当前隐含的标准差 由于用1年滚动，避免数据泄露
 
+        data['label_std'] =  data['ma_return_std'] # 固定标准差，稳定训练
+
         data['upper_bond'] = data['label_return'].rolling(window = 250).quantile(1 - threshold_ratio) # 过去一年的收益下分位数
         data['lower_bond'] = data['label_return'].rolling(window = 250).quantile(threshold_ratio) # 过去一年的收益上分位数
         data['threshold'] = (abs(data['upper_bond']) + abs(data['lower_bond']))/2 # 过去一年的收益的分割阈值
