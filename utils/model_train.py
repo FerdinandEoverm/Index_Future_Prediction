@@ -4,12 +4,10 @@ import numpy as np
 class ModelTrain():
     """
     封装模型训练过程
-    data_set 需要实现__call__返回batch_size的数据
     """
-    def __init__(self, model, train_loader, validation_loader, test_loader, loss_fn, optimizer, scheduler, recorder, graph):
+    def __init__(self, model, train_loader, test_loader, loss_fn, optimizer, scheduler, recorder, graph):
         self.model = model
         self.train_loader = train_loader
-        self.validation_loader = validation_loader
         self.test_loader = test_loader
         self.loss_fn = loss_fn
         self.optimizer = optimizer
@@ -25,17 +23,14 @@ class ModelTrain():
 
         if use_set == 'train':
             current_loader = self.train_loader
-        elif use_set == 'validation':
-            current_loader = self.validation_loader
         elif use_set == 'test':
             current_loader = self.test_loader
         else:
-            raise ValueError('Wrong set type. use train, validation or test.')
+            raise ValueError('Wrong set type. use train or test.')
 
         if is_train:
             self.model.train()
             for batch_x, batch_y in tqdm.tqdm(current_loader):
-
                 self.optimizer.zero_grad()
                 pred = self.model(batch_x)
                 loss = self.loss_fn(pred, batch_y)
@@ -69,44 +64,44 @@ class ModelTrain():
             # 如果当前模型刚刚初始化，执行一次测试记录初始损失
             self.graph.reset()
             train_loss, train_summary, train_score = self.round(is_train=False, use_set='train')
-            validation_loss, validation_summary, validation_score = self.round(is_train=False, use_set='validation')
-            losses.append(validation_loss)
+            test_loss, test_summary, test_score = self.round(is_train=False, use_set='test')
+            losses.append(test_loss)
             self.graph.add(self.current_epoch, train_loss, subplot_idx = 0)
             self.graph.add(self.current_epoch, train_summary, subplot_idx = 1)
             self.graph.add(self.current_epoch, train_score, subplot_idx = 2)
-            self.graph.add(self.current_epoch, validation_loss, subplot_idx = 3)
-            self.graph.add(self.current_epoch, validation_summary, subplot_idx = 4)
-            self.graph.add(self.current_epoch, validation_score, subplot_idx = 5)
+            self.graph.add(self.current_epoch, test_loss, subplot_idx = 3)
+            self.graph.add(self.current_epoch, test_summary, subplot_idx = 4)
+            self.graph.add(self.current_epoch, test_score, subplot_idx = 5)
             self.graph.draw()
 
         for epoch in range(epochs):
 
             self.current_epoch += 1
             train_loss, train_summary, train_score = self.round(is_train=True, use_set='train')
-            validation_loss, validation_summary, validation_score = self.round(is_train=False, use_set='validation')
+            test_loss, test_summary, test_score = self.round(is_train=False, use_set='test')
 
             self.scheduler.step()
 
-            losses.append(validation_loss)
+            losses.append(test_loss)
 
-            # graph
+            # 做图
             self.graph.add(self.current_epoch, train_loss, subplot_idx = 0)
             self.graph.add(self.current_epoch, train_summary, subplot_idx = 1)
             self.graph.add(self.current_epoch, train_score, subplot_idx = 2)
-            self.graph.add(self.current_epoch, validation_loss, subplot_idx = 3)
-            self.graph.add(self.current_epoch, validation_summary, subplot_idx = 4)
-            self.graph.add(self.current_epoch, validation_score, subplot_idx = 5)
+            self.graph.add(self.current_epoch, test_loss, subplot_idx = 3)
+            self.graph.add(self.current_epoch, test_summary, subplot_idx = 4)
+            self.graph.add(self.current_epoch, test_score, subplot_idx = 5)
             self.graph.draw()
             
-            # Early Stop
+            # 早停
             if epoch > early_stop:
-                if validation_loss>np.mean(losses[-early_stop:]):
+                if test_loss>np.mean(losses[-early_stop:]):
                     break
 
         # 最后输出训练结果表格的对比
-        self.round(is_train=False, use_set='train')
-        self.recorder.summary()
         self.round(is_train=False, use_set='test')
-        self.recorder.summary()
+        test_df = self.recorder.summary()
+        prediction = test_df.iloc[3,0]
+        precision = test_df.iloc[3,1] - test_df.iloc[3,2]
 
-        return self.recorder.summary().iloc[3,0], self.recorder.summary().iloc[3,1] - self.recorder.summary().iloc[3,2]
+        return prediction, precision
