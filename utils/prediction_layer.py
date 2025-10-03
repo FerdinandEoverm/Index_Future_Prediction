@@ -34,8 +34,8 @@ class HybridLoss(nn.Module):
         """
         super().__init__()
         self.alpha = alpha
-        self.huber_loss = nn.HuberLoss(delta = delta, reduction='sum')
-        self.kl_loss = nn.KLDivLoss(reduction='sum')
+        self.huber_loss = nn.HuberLoss(delta = delta, reduction='mean')
+        self.kl_loss = nn.KLDivLoss(reduction='mean')
         self.show_loss = show_loss
 
     def forward(self, pred: torch.Tensor, real: torch.Tensor):
