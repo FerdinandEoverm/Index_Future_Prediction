@@ -79,14 +79,9 @@ class RandomLoader:
         balance： list of bool
         """
         assert len(slice_size) == len(balance), 'unmatched length of slice_size and balance'
-
-        
         total_ratio = np.sum(slice_size)
-
         start = np.random.randint(0, int(self.length * (1 - total_ratio)))
-        print(start)
         dataloaders = []
-
         for i in range(len(slice_size)):
             size = int(self.length * slice_size[i])
 
