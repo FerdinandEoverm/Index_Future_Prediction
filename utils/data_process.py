@@ -91,12 +91,16 @@ class RandomLoader:
             size = int(self.length * slice_size[i])
 
             if i == 0:
-                dataset = TensorDataset(self.feature[:start+size], self.label[:start+size])
+                current_feature = torch.flatten(self.feature[:start+size], start_dim = 0, end_dim = -3)
+                current_label = torch.flatten(self.label[:start+size], start_dim = 0, end_dim = -2)
+                dataset = TensorDataset(current_feature, current_label)
             else:
-                dataset = TensorDataset(self.feature[start:start+size], self.label[start:start+size])
+                current_feature = torch.flatten(self.feature[start:start+size], start_dim = 0, end_dim = -3)
+                current_label = torch.flatten(self.label[start:start+size], start_dim = 0, end_dim = -2)
+                dataset = TensorDataset(current_feature, current_label)
 
             if balance[i]:
-                balance_sampler = BalancedSampler(self.label[start:start+size], batch_size)
+                balance_sampler = BalancedSampler(current_label, batch_size)
                 loader = DataLoader(dataset, batch_sampler=balance_sampler)
             else:
                 loader = DataLoader(dataset, batch_size=batch_size, drop_last = True)
