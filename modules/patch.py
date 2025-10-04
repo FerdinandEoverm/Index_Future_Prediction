@@ -52,4 +52,5 @@ class TimeSeriesPatcher(nn.Module):
         assert seq_len >= self.patch_size, 'patch_size 超过了序列长度'
         patches = x.unfold(dimension=-2, size=self.patch_size, step=self.stride)
         patches = patches.swapaxes(-1, -2)
+        patches = torch.flatten(patches, start_dim = -2)
         return patches

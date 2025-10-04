@@ -13,13 +13,10 @@ class EncoderBlock(nn.Module):
     """
     def __init__(
             self,
-            batch_size,
             dim_feature,
             dim_sequence,
-
             num_head,
             num_ffn_hidden,
-
             dropout,
             ):
         super(EncoderBlock, self).__init__()
@@ -44,10 +41,8 @@ class MultiLayerEncoder(nn.Module):
     """
     def __init__(
             self,
-            batch_size,
             dim_feature,
             dim_sequence,
-
             num_enc_layer,
             num_head,
             num_ffn_hidden,
@@ -57,16 +52,13 @@ class MultiLayerEncoder(nn.Module):
             ):
         super(MultiLayerEncoder, self).__init__()
         self.layers = nn.ModuleList([EncoderBlock(
-            batch_size = batch_size,
             dim_feature = dim_feature,
             dim_sequence = dim_sequence,
-
             num_head = num_head,
             num_ffn_hidden = num_ffn_hidden,
-
             dropout = dropout,
-
-            )for _ in range(num_enc_layer)])
+            )
+            for _ in range(num_enc_layer)])
 
     def forward(self, x, mask=None):
         for layer in self.layers:
