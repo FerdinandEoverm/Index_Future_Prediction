@@ -95,10 +95,10 @@ class RandomLoader:
                 dataset = TensorDataset(current_feature, current_label)
 
             if balance[i]:
-                balance_sampler = BalancedSampler(current_label, batch_size)
+                balance_sampler = BalancedSampler(current_label, batch_size) # BalancedSampler 中已经设置了随机抽取
                 loader = DataLoader(dataset, batch_sampler=balance_sampler)
             else:
-                loader = DataLoader(dataset, batch_size=batch_size, drop_last = True)
+                loader = DataLoader(dataset, batch_size=batch_size, drop_last = True, shuffle = True)
 
             dataloaders.append(loader)
             start = start + size
