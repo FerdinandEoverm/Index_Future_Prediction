@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import math
 
 class SimplePatch(nn.Module):
     """"
@@ -54,3 +55,50 @@ class TimeSeriesPatcher(nn.Module):
         patches = patches.swapaxes(-1, -2)
         patches = torch.flatten(patches, start_dim = -2)
         return patches
+
+
+class PositionalEncoding(nn.Module):
+    """
+    处理(* , seq_len, feature_dim) tensor，在seq_len维度上添加位置编码。
+    """
+    def __init__(self, d_model, dropout, max_len = 5000):
+        """
+            d_model (int): 特征维度 (feature_dim)
+            dropout (float): Dropout的概率
+            max_len (int): 预先计算编码的最大序列长度
+        """
+        super().__init__()
+        self.dropout = nn.Dropout(dropout)
+        assert d_model % 2 == 0, "d_model 必须是偶数"
+
+        position = torch.arange(max_len).unsqueeze(1)
+
+
+        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        pe = torch.zeros(max_len, d_model)
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        seq_len = x.size(-2)
+        pos_encoding = self.pe[:seq_len, :]
+        x = x + pos_encoding
+        return self.dropout(x)
+
+
+class PatchProjection(nn.Module):
+    def __init__(self, input_size, patch_size, d_model = 128, dropout = 0.1):
+        super().__init__()
+        self.input_size = input_size
+        self.patch_size = patch_size
+        
+        self.project = nn.Linear(input_size * patch_size, d_model) # 暂时只使用单层线性投影就够了 暂时不需要做太过深度的信息抽象，这个过程会交给Encoder去完成
+        self.pe = PositionalEncoding(d_model = d_model, dropout = dropout)
+        
+    
+    def forward(self, x):
+        x = self.project(x)
+        x = self.pe(x)
+        return x

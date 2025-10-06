@@ -273,3 +273,4 @@ if __name__ == '__main__':
     assert output.shape[1] == sequence_length, 'error: unmatched dim in 1'
     assert output.shape[2] == dim_feature, 'error: unmatched dim in 2'
     print('========================')
+
