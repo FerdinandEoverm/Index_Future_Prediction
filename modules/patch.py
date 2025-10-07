@@ -37,10 +37,6 @@ class TimeSeriesPatcher(nn.Module):
 
     def __init__(self, patch_size: int, stride: int):
         super().__init__()
-        if not isinstance(patch_size, int) or patch_size <= 0:
-            raise ValueError("patch_size 必须是一个正整数。")
-        if not isinstance(stride, int) or stride <= 0:
-            raise ValueError("step 必须是一个正整数。")
 
         self.patch_size = patch_size
         self.stride = stride
