@@ -30,6 +30,9 @@ class ModelTrain():
 
         if is_train:
             self.model.train()
+            self.model.encoder.eval()
+            self.model.projection.eval()
+
             for batch_x, batch_y in tqdm.tqdm(current_loader):
                 self.optimizer.zero_grad()
                 pred = self.model(batch_x)
