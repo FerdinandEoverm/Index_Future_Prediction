@@ -1,6 +1,18 @@
 # Index_Future_Prediction
 感谢您的关注！ <br>
 这个库用于保存我个人对股指期货的相关研究，主要展示本人对传统统计、机器学习、以及深度学习相关的工具的研究和使用。 <br>
+
+文件目录：<br>
+framework：    保存了对整个研究体系外围框架的介绍说明，请先查看这个文件夹<br>
+utils：        framework中提出的工具的python实现<br>
+modules：      共用的底层模型组件，例如Self-attention、Embedding等<br>
+statistic:     基础的统计学方法，大部分都outdate了，更多的是作为工具服务其他方法<br>
+linear model： DLinear等线性模型，简单效果好，作为基线可以秒杀很多花里胡哨不切实际的论文<br>
+RNN model：    RNN-based架构，主要是LSTM、GRU及其复合架构<br>
+Temporal-only Transformer: 时间序列 Time Series Transformer，采用通道独立假设，将面板数据降维成普通时间序列，不建模截面关系，用于单资产预测<br>
+Spatio-Temporal Transformer: 面板数据 Panel Data Transformer，采用通道相关假设，同时建模时间序列和截面关系，直接输出资产组合预测<br>
+
+
 本人本科毕业于中国农业大学，研究生毕业于美国加州大学戴维斯分校。农业与资源经济学专业。主要研究微观经济学和计量经济学<br>
  <br>
 CFA特许金融分析师持证人。曾任浙商期货产业研究所研究员。 <br>
