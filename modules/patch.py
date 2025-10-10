@@ -32,24 +32,27 @@ class SimplePatch(nn.Module):
     
 class TimeSeriesPatcher(nn.Module):
     """
-    将形状为 (*, seq_len, feature) 的tensor重塑为 (*, num_patch, patch_size, feature)，允许patch重叠
+    将形状为 (*, seq_len, feature_dim) 的tensor重塑为 (*, num_patch, patch_size * feature_dim)，允许patch重叠
     """
-
     def __init__(self, patch_size: int, stride: int):
         super().__init__()
-
         self.patch_size = patch_size
         self.stride = stride
 
-    def forward(self, x) :
+    def forward(self, x):
         """
         num_patch = floor((seq_len - patch_size) / stride) + 1
         """
         seq_len = x.shape[-2]
+        feature_dim = x.shape[-1]
         assert seq_len >= self.patch_size, 'patch_size 超过了序列长度'
+        # 输出: (*, feature_dim, num_patch, patch_size)
         patches = x.unfold(dimension=-2, size=self.patch_size, step=self.stride)
-        patches = patches.swapaxes(-1, -2)
-        patches = torch.flatten(patches, start_dim = -2)
+        # 调整维度顺序，将feature_dim和patch_size合并
+        patches = patches.permute(*range(patches.dim() - 3), -2, -1, -3)      
+        # 展平每个patch
+        patches = patches.reshape(*patches.shape[:-2], self.patch_size * feature_dim)
+        # 输出: (*, num_patch, patch_size * feature_dim)
         return patches
 
 

@@ -191,7 +191,7 @@ class Embedding(nn.Module):
 
 # 测试
 if __name__ == '__main__':
-    # --- 定义超参数 ---
+    # 超参数
     batch_size = 16
     sequence_length = 1024
 
