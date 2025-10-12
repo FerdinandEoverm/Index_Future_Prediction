@@ -9,4 +9,4 @@ class AddNorm(nn.Module):
         self.ln = nn.LayerNorm(normalized_shape)
 
     def forward(self, X, Y):
-        return self.ln(self.dropout(Y) + X)
+        return  X + self.ln(self.dropout(Y))

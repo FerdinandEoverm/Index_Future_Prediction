@@ -5,6 +5,7 @@ from .dlinear import DLinear
 from .embedding import FeatureEmbedding, ProductEmbedding, TemporalEmbedding, CalendarEmbedding, Embedding
 from .patch import SimplePatch, TimeSeriesPatcher, PositionalEncoding, PatchProjection
 from .truncate import SequenceTruncate
+from .assets_embedding import AssetsEmbedding
 
 __all__  = ['MultiLayerEncoder',
             'MultiLayerDecoder',
@@ -20,4 +21,5 @@ __all__  = ['MultiLayerEncoder',
             'SequenceTruncate',
             'PositionalEncoding',
             'PatchProjection',
+            'AssetsEmbedding'
             ]

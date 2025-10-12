@@ -46,13 +46,20 @@ class TimeSeriesPatcher(nn.Module):
         seq_len = x.shape[-2]
         feature_dim = x.shape[-1]
         assert seq_len >= self.patch_size, 'patch_size 超过了序列长度'
-        # 输出: (*, feature_dim, num_patch, patch_size)
+        
+        # x 的形状: (*, seq_len, feature_dim)
+        # unfold 会为补丁切片创建一个新的维度
+        # patches 的形状: (*, num_patch, feature_dim, patch_size)
         patches = x.unfold(dimension=-2, size=self.patch_size, step=self.stride)
-        # 调整维度顺序，将feature_dim和patch_size合并
-        patches = patches.permute(*range(patches.dim() - 3), -2, -1, -3)      
-        # 展平每个patch
+        
+        # permute 这一行是错误的根源，应当被删除
+        # patches = patches.permute(*range(patches.dim() - 3), -2, -1, -3) # <- 删除这一行
+        
+        # 将最后两个维度 (feature_dim 和 patch_size) 展平
+        # 形状变为: (*, num_patch, feature_dim * patch_size)
         patches = patches.reshape(*patches.shape[:-2], self.patch_size * feature_dim)
-        # 输出: (*, num_patch, patch_size * feature_dim)
+        
+        # 最终输出形状: (*, num_patch, patch_size * feature_dim)
         return patches
 
 
