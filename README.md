@@ -13,7 +13,7 @@
 | RNN  |RNN-based架构，主要是LSTM、GRU及其复合架构|
 | Temporal-only Transformer |时间序列 Time Series Transformer，将面板数据降维成普通时间序列，不建模截面关系的单资产预测 sharpe = 0.6 |
 | Spatio-Temporal Transformer |面板数据 Panel Data Transformer，同时建模时间序列和截面关系，直接输出资产组合预测 sharpe = 1.1 |
-| personal |简历及获奖证明|
+| personal |简历及其他个人信息，供招聘者参考|
 
  <br>
 本人本科毕业于中国农业大学，研究生毕业于美国加州大学戴维斯分校。农业与资源经济学专业。主要研究微观经济学和计量经济学<br>
