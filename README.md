@@ -11,8 +11,8 @@
 | statistic |基础的统计学方法，大部分都outdate了，更多的是作为工具服务其他方法  |
 | linear |DLinear等线性模型，简单效果好，作为基线可以秒杀很多花里胡哨不切实际的论文 |
 | RNN  |RNN-based架构，主要是LSTM、GRU及其复合架构|
-| Temporal-only Transformer |时间序列 Time Series Transformer，采用通道独立假设，将面板数据降维成普通时间序列，不建模截面关系的单资产预测 sharpe = 0.6 |
-| Spatio-Temporal Transformer |面板数据 Panel Data Transformer，采用通道相关假设，同时建模时间序列和截面关系，直接输出资产组合预测 sharpe = 1.1 |
+| Temporal-only Transformer |时间序列 Time Series Transformer，将面板数据降维成普通时间序列，不建模截面关系的单资产预测 sharpe = 0.6 |
+| Spatio-Temporal Transformer |面板数据 Panel Data Transformer，同时建模时间序列和截面关系，直接输出资产组合预测 sharpe = 1.1 |
 | personal |简历及获奖证明|
 
  <br>
