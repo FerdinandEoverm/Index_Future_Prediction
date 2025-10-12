@@ -53,66 +53,51 @@ class ProductEmbedding(nn.Module):
 
 
 class TemporalEmbedding(nn.Module):
-    '''
-    类Time2Vec时序编码，输入torch tensor。
-    原始输入维度: (batch_size, sequence_size) 或 (sequence_size,)
-    返回维度: (batch_size, sequence_size, embed_size) 或 (sequence_size, embed_size)
-    输入是int格式的相对日期。
-    '''
-
-    def __init__(self, embed_size):
-        """
-        初始化 Time2Vec 模块。
-
-        参数:
-        embed_size (int): 嵌入向量的总维度。这个维度将被分为1个线形成分和 (embed_size - 1) 个周期性成分。
-        device (str): 指定模型参数所在的设备 ('cpu' 或 'cuda')。
-        """
-        super(TemporalEmbedding, self).__init__()
-        if embed_size <= 1:
-            raise ValueError("Embedding size must be greater than 1.")
-            
-        self.embed_size = embed_size
-        self.k = embed_size - 1
+    """
+    Time2Vec时序编码，以concat形式扩展位置编码。
+    原始输入维度: (*, seq_len, d_model)
+    输出维度: (*, seq_len, d_model + dim_embedding)
+    """
+    def __init__(self, dim_embedding):
+        super().__init__()
+        self.dim_embedding = dim_embedding
         
-        # 线性部分的权重和偏置 (ω_0, φ_0)
-        # 权重 w0 的形状: (1, 1)
-        self.w0 = nn.Parameter(torch.randn(1, 1))
-        # 偏置 p0 的形状: (1, 1)
-        self.p0 = nn.Parameter(torch.randn(1, 1))
+        # Time2Vec 的可学习参数
+        self.w = nn.Parameter(torch.empty(1, self.dim_embedding), requires_grad=True)
+        self.b = nn.Parameter(torch.empty(1, self.dim_embedding), requires_grad=True)
+        # 初始化参数
+        nn.init.uniform_(self.w, -0.1, 0.1)
+        nn.init.uniform_(self.b, -0.1, 0.1)
 
-        # 周期性部分的权重和偏置 (ω_i, φ_i for i=1..k)
-        # 权重 wi 的形状: (1, k)
-        self.w = nn.Parameter(torch.randn(1, self.k))
-        # 偏置 pi 的形状: (1, k)
-        self.p = nn.Parameter(torch.randn(1, self.k))
-
-
-    def forward(self, relative_date: torch.IntTensor):
+    def forward(self, x):
         """
-        前向传播。
-
-        参数:
-        relative_date (torch.Tensor): 包含相对日期的张量，整数类型。形状可以是 (batch_size, sequence_size) 或 (sequence_size,)
-        返回:
-        torch.Tensor: 嵌入后的向量，形状为 (..., embed_size)
+        输入形状为 (*, seq_len, d_model)
+        输出形状为 (*, seq_len, d_model + dim_embedding)
         """
-        # 1. 将输入数据转换为浮点型，并添加一个维度用于矩阵乘法
-        # 例如 (batch_size, seq_len) -> (batch_size, seq_len, 1)
-        time = relative_date.float().unsqueeze(-1)
+        # 保存初始形状
+        original_shape = x.shape # (*, seq_len, feature_dim)
+        seq_len = original_shape[-2]
+        batch_dims = original_shape[:-2]
+        
+        # 相对时间序号： [0, 1, 2, ..., seq_len-1]
+        tau = torch.arange(seq_len, dtype=torch.float, device=x.device).unsqueeze(-1)
 
-        # 2. 计算线形成分: v_0 = ω_0 * τ + φ_0
-        # time @ self.w0 -> (..., 1) @ (1, 1) = (..., 1)
-        linear_part = torch.matmul(time, self.w0) + self.p0
+        # 计算时间嵌入
+        time_embedding = tau @ self.w + self.b
+        
+        linear_part = time_embedding[:, :1] # 线性部分
+        periodic_part = torch.sin(time_embedding[:, 1:]) # 周期性部分
 
-        # 3. 计算周期性成分: v_i = sin(ω_i * τ + φ_i)
-        # time @ self.w -> (..., 1) @ (1, k) = (..., k)
-        periodic_part = torch.sin(torch.matmul(time, self.w) + self.p)
+        time_embedding = torch.cat([linear_part, periodic_part], dim=-1)
 
-        # 4. 沿最后一个维度拼接线性和周期性成分
-        # 输出形状为 (..., 1 + k) = (..., embed_size)
-        return torch.cat([linear_part, periodic_part], dim=-1)
+        # 把编码广播到所有维度
+        target_shape = batch_dims + (seq_len, self.dim_embedding)
+        time_embedding = time_embedding.expand(target_shape)
 
+        # 拼接
+        output = torch.cat([x, time_embedding], dim=-1)
+        
+        return output
 
 
 class CalendarEmbedding(nn.Module):

@@ -6,6 +6,7 @@ from .embedding import FeatureEmbedding, ProductEmbedding, TemporalEmbedding, Ca
 from .patch import SimplePatch, TimeSeriesPatcher, PositionalEncoding, PatchProjection
 from .truncate import SequenceTruncate
 from .assets_embedding import AssetsEmbedding
+from .panel_encoder import MultiLayerPanelEncoder
 
 __all__  = ['MultiLayerEncoder',
             'MultiLayerDecoder',
@@ -21,5 +22,6 @@ __all__  = ['MultiLayerEncoder',
             'SequenceTruncate',
             'PositionalEncoding',
             'PatchProjection',
-            'AssetsEmbedding'
+            'AssetsEmbedding',
+            'MultiLayerPanelEncoder'
             ]
