@@ -7,6 +7,7 @@ from .patch import SimplePatch, TimeSeriesPatcher, PositionalEncoding, PatchProj
 from .truncate import SequenceTruncate
 from .assets_embedding import AssetsEmbedding
 from .panel_encoder import MultiLayerPanelEncoder
+from .weighted_rank_loss import WeightedRankLoss
 
 __all__  = ['MultiLayerEncoder',
             'MultiLayerDecoder',
@@ -23,5 +24,6 @@ __all__  = ['MultiLayerEncoder',
             'PositionalEncoding',
             'PatchProjection',
             'AssetsEmbedding',
-            'MultiLayerPanelEncoder'
+            'MultiLayerPanelEncoder',
+            'WeightedRankLoss',
             ]
